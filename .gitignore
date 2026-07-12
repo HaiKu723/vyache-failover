@@ -1,10 +1,132 @@
-__pycache__/
-*.pyc
+# =========================
+# Python
+# =========================
 
-logs/
+__pycache__/
+*.py[cod]
+*$py.class
+
+*.so
+
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+
+*.egg-info/
+.installed.cfg
+*.egg
+
+pip-log.txt
+pip-delete-this-directory.txt
+
+
+# =========================
+# Virtual environments
+# =========================
+
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+
+# =========================
+# Environment / secrets
+# =========================
 
 .env
+.env.*
 
 /etc/vyache-failover.conf
+vyache-failover.conf
+
+*.secret
+*.token
+*.key
+*.pem
+*.crt
+
+
+# =========================
+# Logs
+# =========================
 
 *.log
+
+logs/
+log/
+
+
+# =========================
+# Tests / cache
+# =========================
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+
+# =========================
+# IDE
+# =========================
+
+.vscode/
+.idea/
+
+*.swp
+*.swo
+*~
+
+
+# =========================
+# OS files
+# =========================
+
+.DS_Store
+Thumbs.db
+
+
+# =========================
+# Local configs
+# =========================
+
+config.local.py
+local_settings.py
+
+
+# =========================
+# Temporary files
+# =========================
+
+tmp/
+temp/
+*.tmp
+
+
+# =========================
+# Project runtime
+# =========================
+
+run/
+*.pid
+
+
+# =========================
+# Backup files
+# =========================
+
+*.bak
+*.backup
+*.old
+
+
+# =========================
+# Keep example config
+# =========================
+
+!vyache-failover.conf.example
