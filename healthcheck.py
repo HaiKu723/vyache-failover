@@ -3,7 +3,7 @@ Vyache Failover
 Health checker
 
 Author: HaiKu
-Version: 1.0.0
+Version: 1.0.1
 """
 
 from __future__ import annotations
@@ -33,6 +33,12 @@ class HealthChecker:
         self.fail_counter = 0
         self.recover_counter = 0
 
+        # текущее состояние DNS
+        self.mode = "primary"
+
+
+    # -----------------------------
+
     def check(self):
 
         healthy = self.ssh.is_healthy()
@@ -45,7 +51,8 @@ class HealthChecker:
 
             self._failed()
 
-    # ------------------------------
+
+    # -----------------------------
 
     def _healthy(self):
 
@@ -57,16 +64,25 @@ class HealthChecker:
             f"RU1 OK ({self.recover_counter}/{self.cfg.recover_count})"
         )
 
+
+        # если уже primary - ничего не делаем
+
+        if self.mode == "primary":
+            return
+
+
+        # ждём стабильное восстановление
+
         if self.recover_counter < self.cfg.recover_count:
             return
 
-        current = self.api.get_current_ip()
 
-        if current != self.cfg.primary_ip:
+        self.log.warning(
+            "Switching DNS -> PRIMARY"
+        )
 
-            self.log.warning(
-                "Switching DNS -> PRIMARY"
-            )
+
+        try:
 
             if self.api.switch_to_primary():
 
@@ -74,9 +90,19 @@ class HealthChecker:
                     "DNS switched to PRIMARY"
                 )
 
-        self.recover_counter = self.cfg.recover_count
 
-    # ------------------------------
+            self.mode = "primary"
+            self.recover_counter = 0
+
+
+        except Exception as e:
+
+            self.log.error(
+                f"PRIMARY switch failed: {e}"
+            )
+
+
+    # -----------------------------
 
     def _failed(self):
 
@@ -84,20 +110,28 @@ class HealthChecker:
 
         self.fail_counter += 1
 
+
         self.log.warning(
             f"RU1 FAILED ({self.fail_counter}/{self.cfg.fail_count})"
         )
 
+
+        # если уже backup - не дёргаем DNS
+
+        if self.mode == "backup":
+            return
+
+
         if self.fail_counter < self.cfg.fail_count:
             return
 
-        current = self.api.get_current_ip()
 
-        if current != self.cfg.backup_ip:
+        self.log.warning(
+            "Switching DNS -> BACKUP"
+        )
 
-            self.log.warning(
-                "Switching DNS -> BACKUP"
-            )
+
+        try:
 
             if self.api.switch_to_backup():
 
@@ -105,4 +139,13 @@ class HealthChecker:
                     "DNS switched to BACKUP"
                 )
 
-        self.fail_counter = self.cfg.fail_count
+
+            self.mode = "backup"
+            self.fail_counter = 0
+
+
+        except Exception as e:
+
+            self.log.error(
+                f"BACKUP switch failed: {e}"
+            )
