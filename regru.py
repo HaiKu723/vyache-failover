@@ -37,38 +37,46 @@ class RegRu:
         payload = self.auth.copy()
         payload.update(data)
 
-        try:
+        last_error = None
 
-            response = requests.post(
-                f"{self.API_URL}/{method}",
-                data=payload,
-                timeout=15
-            )
+        for attempt in range(3):
 
-            response.raise_for_status()
+            try:
 
-        except Exception as e:
-
-            raise RegRuError(
-                f"REG.RU connection error: {e}"
-            )
-
-
-        result = response.json()
-
-
-        if result.get("result") != "success":
-
-            raise RegRuError(
-                result.get(
-                    "error_text",
-                    "Unknown REG.RU error"
+                response = requests.post(
+                    f"{self.API_URL}/{method}",
+                    data=payload,
+                    timeout=(10, 30)
                 )
-            )
+
+                response.raise_for_status()
+
+                result = response.json()
+
+                if result.get("result") != "success":
+
+                    raise RegRuError(
+                        result.get(
+                            "error_text",
+                            "Unknown REG.RU error"
+                        )
+                    )
+
+                return result
 
 
-        return result
+            except Exception as e:
 
+                last_error = e
+
+                print(
+                    f"REG.RU attempt {attempt + 1}/3 failed: {e}"
+                )
+
+
+        raise RegRuError(
+            f"REG.RU unavailable: {last_error}"
+        )
 
 
     # Получение записей зоны
@@ -83,8 +91,7 @@ class RegRu:
         )
 
 
-
-    # Текущий IP vpn
+    # Текущие IP VPN записи
 
     def get_vpn_ips(self):
 
@@ -116,6 +123,7 @@ class RegRu:
         return ips
 
 
+    # Текущий IP
 
     def get_current_ip(self):
 
@@ -126,7 +134,6 @@ class RegRu:
             return ips[0]
 
         return None
-
 
 
     # Добавление A записи
@@ -150,6 +157,7 @@ class RegRu:
                 "ipaddr": ip,
             }
         )
+
 
     # Удаление A записи
 
@@ -175,8 +183,7 @@ class RegRu:
         )
 
 
-
-    # Переключение
+    # Переключение на основной сервер
 
     def switch_to_primary(self):
 
@@ -204,6 +211,7 @@ class RegRu:
         return True
 
 
+    # Переключение на резервный сервер
 
     def switch_to_backup(self):
 
