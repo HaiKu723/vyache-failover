@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+
+logs/
+
+.env
+
+/etc/vyache-failover.conf
+
+*.log
